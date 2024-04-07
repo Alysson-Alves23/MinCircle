@@ -65,7 +65,7 @@ public class Parser {
         childs.add(parseDeclaration());
         while (tokens.peek().kind == Token.SEMICOLON){
             childs.add(new Node(Node.TOKEN, acceptIt()));
-            parseDeclaration();
+            childs.add(parseDeclaration());
         };
 
         return new Node(Node.DECLARATIONS,childs.toArray(new Node[]{}));
@@ -114,7 +114,7 @@ public class Parser {
         childs.add(parseCommand());
         while (tokens.peek().kind == Token.SEMICOLON){
             childs.add(new Node(Node.TOKEN, acceptIt()));
-            parseCommand();
+            childs.add(parseCommand());
         };
         return new Node(Node.COMMAND_LIST, childs.toArray(new Node[]{}));
 

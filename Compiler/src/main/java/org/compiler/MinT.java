@@ -19,7 +19,7 @@ public class MinT {
         Node ast = new Parser(tokenList).parse();
 //        for(Token token: tokenList)
 //            System.out.println(token.spelling);
-
+        ast.printTree("",true);
 
         return obj;
     }
