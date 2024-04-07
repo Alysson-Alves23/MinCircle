@@ -10,7 +10,7 @@ begin
 ! notas
     prova1 := 7.5;
     prova2 := 8.0;
-    prova3 := 6.5;
+    prova3 := 6.5
 ! calcula a media
     media := (prova1 * 2 + prova2 * 3 + prova3 * 5) / 10;
 
