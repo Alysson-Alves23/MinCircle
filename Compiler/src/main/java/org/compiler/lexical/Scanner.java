@@ -80,15 +80,9 @@ public class Scanner {
                     //  takeIt();
                     return Token.COLON;
                 }
-
-            case '~' :
-                takeIt();
-                return Token.IS;
-
             case '(' :
                 takeIt();
                 return Token.LPAREN;
-
             case ')' :
                 takeIt();
                 return Token.RPAREN;
@@ -99,14 +93,9 @@ public class Scanner {
                 return Token.EOT;
 
             default :
-                //Lexical Error
-                return 21;
-
+                throw new UnrecognizedSymbolError("o simbolo " + currentChar + "não é reconhcido!");
         }
-
-
     }
-
     private void scanSeparator(){
         switch (currentChar){
             case '!':
@@ -142,14 +131,15 @@ public class Scanner {
             currentChar = src.charAt(1);
             src.deleteCharAt(1);
         }else{
-            throw new UnrecognizedSymbolError("O simbolo "+currentChar+" Não é reconhecido!");
+            throw new UnrecognizedSymbolError("O simbolo " + currentChar + " não é reconhecido!");
         }
 
     }
-    public List<Token> scan(){
+
+    public Token[] scan() {
         List<Token> result = new ArrayList<Token>();
 
-        while (src.length()>1) {
+        while (src.length()>1 || currentChar!='\n') {
             currentSpeeling = new StringBuffer();
             while (currentChar == '!' || currentChar == ' ' || currentChar == '\n')
                 scanSeparator();
@@ -158,7 +148,7 @@ public class Scanner {
 
             result.add(new Token(currentKind, row,column-currentSpeeling.toString().length(), currentSpeeling.toString()));
         }
-        return result;
+        return result.toArray(new Token[]{});
     }
     private boolean isDigit(char c){
         return(c >= 48 && c <= 57);
