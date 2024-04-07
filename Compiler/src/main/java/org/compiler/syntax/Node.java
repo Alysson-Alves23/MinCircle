@@ -37,4 +37,14 @@ public class Node {
     public String getRule() {
         return rules[rule];
     }
+    public void printTree(String prefix, boolean isTail) {
+        System.out.println(prefix + (isTail ? "└── " : "├── ") + getRule());
+        for (int i = 0; i < childs.length - 1; i++) {
+            childs[i].printTree(prefix + (isTail ? "    " : "│   "), false);
+        }
+        if (childs.length > 0) {
+            childs[childs.length - 1].printTree(prefix + (isTail ?"    " : "│   "), true);
+        }
+    }
+
 }
