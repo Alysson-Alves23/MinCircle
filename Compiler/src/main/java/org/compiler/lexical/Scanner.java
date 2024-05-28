@@ -2,71 +2,65 @@ package org.compiler.lexical;
 
 import org.compiler.lexical.errors.UnrecognizedSymbolError;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Scanner {
     private char currentChar = ' ';
-    // private byte srcIndex = 0;
     private final StringBuffer src;
-    private int row;
-    private int column;
-    private  StringBuffer currentSpeeling;
-    public Scanner(StringBuffer src){
+    private int row = 1;
+    private int column = 0;
+    private StringBuffer currentSpelling = new StringBuffer();
+
+    public Scanner(StringBuffer src) {
         this.src = src;
+        advance();  // Initialize currentChar with the first character
     }
-    public Scanner(String src){
+
+    public Scanner(String src) {
         this.src = new StringBuffer(src);
+        advance();  // Initialize currentChar with the first character
     }
 
     /*
         Token :: Identifier | Integer-Literal | Operator |
-                    ; | : | := | | (|) | eot
+                 ; | : | := | | (|) | eot
     */
-    private byte scanToken(){
+    private byte scanToken() {
+        if (currentChar == '\000') {
+            currentSpelling = new StringBuffer(Token.spellings[Token.EOF]);
+            return Token.EOF;
+        }
 
-
-//      Identifier ::= Letter(Letter|Digit)
-        if( isLetter(currentChar) ) { //Letter
-
-            takeIt();//Letter
-            while ((isLetter(currentChar)||isDigit(currentChar))) // (Letter|Digit)]
-            {
-
-
+        // Identifier ::= Letter(Letter|Digit)
+        if (isLetter(currentChar)) {  // Letter
+            takeIt();  // Letter
+            while (isLetter(currentChar) || isDigit(currentChar)) {  // (Letter|Digit)
                 takeIt();
-
             }
             return Token.IDENTIFIER;
         }
-//      Integer-Literal :: = Digit(Digit)*
-        if(isDigit(currentChar)){ //Digit
+
+        // Integer-Literal ::= Digit(Digit)*
+        if (isDigit(currentChar)) {  // Digit
             takeIt();
-            while (isDigit(currentChar))// (Digit)*
+            while (isDigit(currentChar)) {  // (Digit)*
                 takeIt();
+            }
             return Token.INTLITERAL;
         }
 
-
-//      Operator :: = +|-|*|/|<|>|=\
-
+        // Operator ::= +|-|*|/|<|>|=\
         switch (currentChar) {
-                case '+': case '-':
-                    takeIt();
-                    return Token.OPAD;
-                case '*':case'/':
-                    takeIt();
-                    return Token.OPMUL;
-                case'<':case'>':case '=':
-                    takeIt();
-                    return Token.OPREL;
-
-
+            case '+': case '-':
+                takeIt();
+                return Token.OPAD;
+            case '*': case '/':
+                takeIt();
+                return Token.OPMUL;
+            case '<': case '>': case '=':
+                takeIt();
+                return Token.OPREL;
         }
 
-
-
-//       ; | : | := | | (|) | eot
+        // ; | : | := | | (|) | eot
         switch (currentChar) {
             case ';':
                 takeIt();
@@ -77,86 +71,88 @@ public class Scanner {
                     takeIt();
                     return Token.BECOMES;
                 } else {
-                    //  takeIt();
                     return Token.COLON;
                 }
-            case '(' :
+            case '(':
                 takeIt();
                 return Token.LPAREN;
-            case ')' :
+            case ')':
                 takeIt();
                 return Token.RPAREN;
             case '.':
                 takeIt();
                 return Token.DOT;
-            case '\000' :
-                return Token.EOT;
-
-            default :
-                throw new UnrecognizedSymbolError("o simbolo " + currentChar + "não é reconhcido!");
+            default:
+                throw new UnrecognizedSymbolError("O símbolo " + currentChar + " não é reconhecido!");
         }
     }
-    private void scanSeparator(){
-        switch (currentChar){
+
+    private void scanSeparator() {
+        switch (currentChar) {
             case '!':
                 takeIt();
-                while (isGraphic(currentChar))
+                while (isGraphic(currentChar)) {
                     takeIt();
+                }
                 take('\n');
-
+                break;
             case ' ': case '\n':
                 takeIt();
                 break;
+            default:
+                break;
         }
-
     }
 
     private boolean isGraphic(char currentChar) {
         return (32 <= currentChar && currentChar <= 126);
     }
 
-    private void takeIt(){
-        column++;
-        currentSpeeling.append(currentChar);
-        currentChar = src.charAt(0);
-        if(src.length()>1)
-            src.deleteCharAt(0);
-
-
-    }
-
-    private void take(char c){
-        if(currentChar == c) {
+    private void takeIt() {
+        currentSpelling.append(currentChar);
+        if (currentChar == '\n') {
             row++;
-            currentChar = src.charAt(1);
-            src.deleteCharAt(1);
-        }else{
-            throw new UnrecognizedSymbolError("O simbolo " + currentChar + " não é reconhecido!");
+            column = 0;
+        } else {
+            column++;
+        }
+        advance();
+    }
+
+    private void take(char c) {
+        if (currentChar == c) {
+            advance();
+        } else {
+            throw new UnrecognizedSymbolError("O símbolo " + currentChar + " não é reconhecido!");
+        }
+    }
+
+    private void advance() {
+        if (src.length() > 0) {
+            currentChar = src.charAt(0);
+
+            src.deleteCharAt(0);
+        } else {
+
+            currentChar = '\000';  // EOF
+        }
+    }
+
+    public Token scan() {
+        while (currentChar == '!' || currentChar == ' ' || currentChar == '\n') {
+            scanSeparator();
         }
 
+        currentSpelling = new StringBuffer();
+        byte currentKind = scanToken();
+        return new Token(currentKind, row, column - currentSpelling.toString().length(), currentSpelling.toString());
     }
 
-    public Token[] scan() {
-        List<Token> result = new ArrayList<Token>();
-
-        while (src.length()>1 || currentChar!='\n') {
-            currentSpeeling = new StringBuffer();
-            while (currentChar == '!' || currentChar == ' ' || currentChar == '\n')
-                scanSeparator();
-            currentSpeeling = new StringBuffer();
-            byte currentKind = scanToken();
-
-            result.add(new Token(currentKind, row,column-currentSpeeling.toString().length(), currentSpeeling.toString()));
-        }
-        return result.toArray(new Token[]{});
-    }
-    private boolean isDigit(char c){
-        return(c >= 48 && c <= 57);
-    }
-    private boolean isLetter(char c){
-
-        return ( (65<= c && c <=90 ) || (97<= c && c <=122 )  );
-
+    private boolean isDigit(char c) {
+        return (c >= '0' && c <= '9');
     }
 
+    private boolean isLetter(char c) {
+        return ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'));
+    }
 }
