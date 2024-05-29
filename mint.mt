@@ -1,10 +1,10 @@
 program CalculaMediaPonderada;
 
-var prova1: integer;
-var prova2: integer;
-var prova3: integer;
-var media: integer;
-var aprovado: bool
+    var prova1: integer;
+    var prova2: integer;
+    var prova3: integer;
+    var media: integer;
+    var aprovado: bool
 
 begin
 ! notas
